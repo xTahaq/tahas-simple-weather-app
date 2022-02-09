@@ -1,2 +1,2 @@
-# tahas-simple-weather-app
-i was bored
+# coming soon™
+!!! THIS APP IS IN REALLY-VERY-EXTREMELY-EARLY DEMO - Will use tkinter soon
