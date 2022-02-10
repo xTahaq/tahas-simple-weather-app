@@ -9,6 +9,22 @@ import json
 ########### THIS APP IS IN EARLY DEMO - TKINTER (GUI) VERSION COMING VERY SOON. #################
 # this app is so simple but i was out of ideas dont bully me lmaoo tkinter will make it look more complicated tho so no problem
 
+
+def getNextDayForecast(inp):
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    dayi = days.index(inp["current"]["@day"]) + 1
+    if dayi > 6: dayi = 0
+    returnForecast = None
+    for i in inp["forecast"]:
+        if i["@day"] == days[dayi]:
+            returnForecast = {
+                "skytext": i["@skytextday"],
+                "high": i["@high"],
+                "low": i["@low"],
+                "day": i["@day"]
+            }
+    return returnForecast
+
 def simplifyResults(inp):
     return {
             "locationname": inp["@weatherlocationname"],
@@ -19,12 +35,12 @@ def simplifyResults(inp):
             "wind": inp["current"]["@winddisplay"],
             "lat": inp["@lat"],
             "long": inp["@long"],
-            "FORECAST_RAW_DATA-placeholder": inp["forecast"][0], #will be removed in future, placeholder
+            "forecast": getNextDayForecast(inp),
             "RAW_DATA": inp
         }
 
-def searchForPlace(toSearch):
-    resp = requests.get("https://weather.service.msn.com/find.aspx?src=outlook&weadegreetype=C&culture=en&weasearchstr=" + toSearch)
+def searchForPlace(toSearch, degreeType="C"):
+    resp = requests.get("https://weather.service.msn.com/find.aspx?src=outlook&weadegreetype=" + degreeType + "&culture=en&weasearchstr=" + toSearch)
     try:
         dict_data = xmltodict.parse(resp.content)
     except Exception:
@@ -43,7 +59,9 @@ def searchForPlace(toSearch):
 print("WELCOME TO THE DEMO WEATHER APP, TYPE A PLACE NAME TO SEARCH.")
 while True:
     place = input("Type a place >>> ")
+    if place == "EXIT": exit()
     res = searchForPlace(place)
+    #res = searchForPlace(place, "F")
     if res == 0:
         print("Place not found. Try something else!\n")
     else:
