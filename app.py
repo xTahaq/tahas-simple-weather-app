@@ -3,6 +3,8 @@ import xmltodict
 import json
 from tkinter import *
 
+# şu bir yer arıyınca butonlar geliyor ya he onları frame içine koy böylece kolay temizle .destroy() ile, çünkü şuan enter spamlayınca bir sürü yazı oluşuyor silinmiyor
+
 ########### THIS APP IS IN EARLY DEMO ###############
 ########### THIS APP IS IN EARLY DEMO ###############
 ########### THIS APP IS IN EARLY DEMO ###############
@@ -46,7 +48,6 @@ def simplifyResults(inp):
         }
 
 def searchForPlace(toSearch, degreeType="C"):
-    print(degreeType)
     if degreeType != "C" and degreeType != "F":
         degreeType = "C"
     resp = requests.get("https://weather.service.msn.com/find.aspx?src=outlook&weadegreetype=" + degreeType + "&culture=en&weasearchstr=" + toSearch)
@@ -73,8 +74,8 @@ guigap = Label(GUI, text=" \n ")
 guigap.pack()
 mf = Frame(GUI) # main frame
 mf.pack(side=TOP, fill=X)
-gf = Frame(GUI, bd=0) # gridded frame
-gf.pack(side=TOP, fill=X)
+#gf = Frame(GUI, bd=0) # gridded frame
+#gf.pack(side=TOP, fill=X)
 
 def search():
     label = Label(mf, text="Please enter a place name to search for weather:")
@@ -84,43 +85,45 @@ def search():
     Label(mf, text="").pack() #space
 
     def buttonFunc():
+        for w in outputFrame.winfo_children():
+            w.destroy()
         print("Recieved", entry.get())
         res = searchForPlace(entry.get(), data["degreeType"])
         print(json.dumps(res, indent=4, sort_keys=True))
         if res == 0:
-            output["text"] = "Place not found"
+            Label(outputFrame, text="Place not found").pack()
         else:
-            output["text"] = ""
-            somelabel = Label(mf, text="Please click one of the places to see the weather:")
-            somelabel.pack()
-            arrOfButts = []
+            Label(outputFrame, text="Please click one of the places to see the weather:").pack()
             def turnDataToString(index):
                 d = res[index]
                 op = ""
-                for i in arrOfButts:
-                    i.destroy()
-                somelabel.destroy()
-                op = op + "Place Name: " + d["locationname"] + "\n"
-                op = op + "Temperature: " + d["temperature"] + " " + data["degreeType"] + "\n"
-                op = op + "Status: " + d["skytext"] + "\n"
-                op = op + "Wind: " + d["wind"] + "\n"
-                op = op + "Humidity: " + d["humidity"] + "%\n"
-                op = op + "Tomorrows Forecast:" + str(d["forecast"]) + "\n"
-                output["text"] = op
+                for w in outputFrame.winfo_children():
+                    w.destroy()
+                op = op + "Place Name: " + d["locationname"]
+                op = op + "\n\n-- Today --"
+                op = op + "\nTemperature: " + d["temperature"] + " " + data["degreeType"]
+                op = op + "\nStatus: " + d["skytext"]
+                op = op + "\nWind: " + d["wind"]
+                op = op + "\nHumidity: " + d["humidity"] + "%\n\n"
+                op = op + "-- Tomorrows Forecast --"
+                op = op + "\nDay: " + d["forecast"]["day"]
+                op = op + "\nStatus: " + d["forecast"]["skytext"]
+                op = op + "\nHigh: " + d["forecast"]["high"] + " " + data["degreeType"]
+                op = op + "\nStatus: " + d["forecast"]["low"] + " " + data["degreeType"]
+                Label(outputFrame, text=op).pack()
                 
             indx = 0
             for i in res:
-                b = Button(mf, text=i["locationname"], command=lambda indx=indx: turnDataToString(indx))
+                b = Button(outputFrame, text=i["locationname"], command=lambda indx=indx: turnDataToString(indx))
                 b.pack()
-                arrOfButts.append(b)
                 indx += 1
 
 
     button = Button(mf, text="ENTER", command=buttonFunc)
     button.pack()
     Label(mf, text="").pack() #space
-    output = Label(mf, text="")
-    output.pack()
+    outputFrame = Frame(mf)
+    outputFrame.pack()
 
 search()
 
